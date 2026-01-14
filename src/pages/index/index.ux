@@ -1,0 +1,45 @@
+<template>
+  <div class="demo-page">
+    <text class="title">{{ title }}</text>
+    <text class="title">{{ title2 }}</text>
+    <input class="btn" type="button" value="关闭" onclick="routeDetail" />
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+
+export default {
+  private: {
+    title: "点击Banner无法运行Lua表盘",
+    title2: "请前往Task Runner运行Lua表盘"
+  },
+
+  routeDetail() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+.demo-page {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font-size: 20px;
+  text-align: center;
+}
+
+.btn {
+  width: 200px;
+  height: 40px;
+  margin-top: 20px;
+  border-radius: 5px;
+  background-color: #09ba07;
+  font-size: 20px;
+  color: #ffffff;
+}
+</style>

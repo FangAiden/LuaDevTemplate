@@ -1,0 +1,11 @@
+{
+  "projectName": "LuaDevTemplate",
+  "watchfaceId": "167210065",
+  "resourceBin": {
+    "lvglVersion": 9,
+    "colorFormat": "I8",
+    "compress": "NONE",
+    "input": "watchface/lua/app/images/preview.png",
+    "name": "preview"
+  }
+}
