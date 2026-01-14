@@ -1,33 +1,29 @@
--- main.lua (dep-tracked hot-reload, build-gen binding, guarded hooks, namespace-scoped unload)
-
-local lvgl   = require("lvgl")
+-- 热更新入口：加载 app/lua/main.lua
+local lvgl = require("lvgl")
 
 local ok_cfg, cfg = pcall(require, "config")
 local config = ok_cfg and cfg or {}
 local project_name = config.project_name or "LuaDevTemplate"
 local watchface_id = tostring(config.watchface_id or "167210065")
 
--- ==== Paths / App module ====
-local DEST_ROOT  = "/data/app/watchface/market/" .. watchface_id
-local STAMP_DIR  = DEST_ROOT .. "/.hotreload"
-local APP_MODULE = "app"                        -- 改成你的 app 模块路径
-local APP_NS     = APP_MODULE:match("^[^%.]+") or APP_MODULE
+local DEST_ROOT = "/data/app/watchface/market/" .. watchface_id
+local STAMP_DIR = DEST_ROOT .. "/.hotreload"
+local APP_MODULE = "app"
+local APP_NS = APP_MODULE:match("^[^%.]+") or APP_MODULE
 
--- ==== Tick pacing ====
-local MODE_ALIGN, MODE_TICK  = 1, 2
+local MODE_ALIGN, MODE_TICK = 1, 2
 local ALIGN_FAST, ALIGN_SLOW = 25, 200
 
--- ==== Localize ====
-local os_time   = os.time
-local pcall     = pcall
-local xpcall    = xpcall
-local tostring  = tostring
+local os_time = os.time
+local pcall = pcall
+local xpcall = xpcall
+local tostring = tostring
 local collectgarbage = collectgarbage
 
-local Timer       = lvgl.Timer
+local Timer = lvgl.Timer
 local fs_open_dir = lvgl.fs.open_dir
 
--- ==== App bridge (hot-reload -> real-device Lua project) ====
+-- 保证 app/lua 在 package.path
 local function get_this_dir()
   local src = ""
   if debug and debug.getinfo then
@@ -107,15 +103,11 @@ package.preload[APP_MODULE] = function()
   return { build = build_app }
 end
 
--- ==== App root ====
-local app_root   = nil
+local app_root = nil
+local in_reload = false
+local GEN = 0
+local BIND_GEN = 0
 
--- ==== Reload / generations ====
-local in_reload  = false
-local GEN        = 0          -- 当前已生效的代
-local BIND_GEN   = 0          -- 本轮 build 期间给回调/定时器绑定的代
-
--- ==== Owned timers (api.schedule) ====
 local OWN_TIMERS = {}
 local function register_timer(t) OWN_TIMERS[t] = true end
 local function unregister_timer(t) OWN_TIMERS[t] = nil end
@@ -127,7 +119,6 @@ local function cancel_owned_timers()
   end
 end
 
--- ==== Hooks & API ====
 local hooks = { per_sec = nil, on_align = nil }
 local function reset_hooks() hooks.per_sec, hooks.on_align = nil, nil end
 
@@ -140,7 +131,6 @@ local function log_error(msg)
   print("[" .. project_name .. "][hotreload] " .. tostring(msg))
 end
 
--- 仅按热更状态与代际检查的安全包装（不再校验 app_root）
 local function make_guarded(cb, bind_gen)
   local my_gen = bind_gen or BIND_GEN
   return function(epoch)
@@ -150,7 +140,6 @@ local function make_guarded(cb, bind_gen)
   end
 end
 
--- API：把回调/定时器绑定到“当前构建代”BIND_GEN
 local api = {
   on_tick = function(cb)
     hooks.per_sec = (type(cb) == "function") and make_guarded(cb, BIND_GEN) or nil
@@ -175,7 +164,6 @@ local api = {
   end,
 }
 
--- ==== Utils ====
 local function safe_delete(o)
   if o and o.delete then pcall(function() o:delete() end) end
 end
@@ -200,8 +188,7 @@ local function read_token(dir)
   return ok and name or nil
 end
 
--- ==== Dep-tracked hot-reload ====
-local APP_DEPS = {}  -- e.g. { ["app"]=true, ["app.to"]=true, ... }
+local APP_DEPS = {}
 
 local RELOAD_BLOCKLIST = {
   lvgl    = true,
@@ -223,7 +210,7 @@ local RELOAD_BLOCKLIST = {
   _G = true,
 }
 
-local RELOAD_WHITELIST_PREFIX = { -- 可按需扩展其它业务前缀
+local RELOAD_WHITELIST_PREFIX = {
 }
 
 local function in_whitelist(name)
@@ -245,26 +232,22 @@ local function unload_deps(deps)
   end
 end
 
--- 主循环定时器
 local main_timer = nil
 
+-- 重新加载 app，并跟踪依赖
 local function reload_app()
-  -- A) 原子期：停表
   in_reload = true
   if main_timer then pcall(function() main_timer:pause() end) end
 
-  -- B) 清理现有资源
   safe_delete(app_root); app_root = nil
   reset_hooks()
   cancel_owned_timers()
 
-  -- C) 卸载上一轮依赖 + 自身
   unload_deps(APP_DEPS)
   package.loaded[APP_MODULE] = nil
   rawset(_G, APP_MODULE, nil)
   collectgarbage("collect")
 
-  -- D) 依赖跟踪 + 预设构建代（仅成功才生效）
   local recorded = {}
   local old_require = require
   local function tracking_require(name)
@@ -273,7 +256,7 @@ local function reload_app()
   end
 
   local proposed_gen = GEN + 1
-  BIND_GEN = proposed_gen  -- 从此刻起，app 注册的回调/定时器都绑定到新代
+  BIND_GEN = proposed_gen
 
   local ok_mod, mod_or_err
   _G.require = tracking_require
@@ -283,7 +266,7 @@ local function reload_app()
   _G.require = old_require
 
   if not ok_mod then
-    BIND_GEN = GEN  -- 回滚绑定代
+    BIND_GEN = GEN
     log_error("reload app failed: " .. mod_or_err)
     in_reload = false
     if main_timer then pcall(function() main_timer:resume() end) end
@@ -302,7 +285,7 @@ local function reload_app()
   local ok_build, root_or_err
   _G.require = tracking_require
   ok_build, root_or_err = xpcall(function()
-    return builder(api) -- app 创建根并 return
+    return builder(api)
   end, tb)
   _G.require = old_require
 
@@ -314,21 +297,17 @@ local function reload_app()
     return false
   end
 
-  -- E) build 成功：落盘新代
   app_root = root_or_err
   APP_DEPS = recorded
   GEN = proposed_gen
 
-  -- F) 退出原子期：复表
   in_reload = false
   if main_timer then pcall(function() main_timer:resume() end) end
   return true
 end
 
--- 初次加载
 reload_app()
 
--- ==== Token polling ====
 local last_token, last_token_check_epoch = nil, -1
 local function maybe_check_token(epoch)
   if epoch == last_token_check_epoch then return end
@@ -339,7 +318,7 @@ local function maybe_check_token(epoch)
   end
 end
 
--- ==== Main timer ====
+-- 主循环：对齐秒级并检查热更标记
 local mode, current_period = MODE_ALIGN, 200
 local last_epoch, ticks = os_time(), 0
 local near_secs = { [58] = true, [59] = true, [0] = true }
@@ -371,7 +350,7 @@ main_timer = Timer({
         maybe_check_token(epoch)
       end
 
-    else -- MODE_TICK
+    else
       local per_sec = hooks.per_sec; if per_sec then per_sec(epoch) end
       maybe_check_token(epoch)
 

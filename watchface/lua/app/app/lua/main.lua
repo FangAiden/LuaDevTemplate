@@ -1,5 +1,6 @@
 local lvgl = require("lvgl")
 
+-- 简单 LuaVGL 示例
 local root = lvgl.Object(nil, {
   w = lvgl.HOR_RES(),
   h = lvgl.VER_RES(),
@@ -46,6 +47,7 @@ local button_label = lvgl.Label(button, {
   align = lvgl.ALIGN.CENTER,
 })
 
+-- 点击切换状态
 local clicks = 0
 local active = false
 

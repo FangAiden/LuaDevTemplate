@@ -51,7 +51,6 @@ if ($parsedId -lt 1 -or $parsedId -gt [int]::MaxValue) {
 }
 
 $luaConfig = @"
--- Generated from watchface.config.json. Do not edit directly.
 local M = {
   project_name = "$projectName",
   watchface_name = "$watchfaceName",

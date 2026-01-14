@@ -10,8 +10,7 @@ if (-not (Test-Path $configPath)) {
 $configRaw = Get-Content -Raw -Encoding UTF8 $configPath
 $config = $configRaw | ConvertFrom-Json
 
-# Match: (Math.random() * 10 ** 12).toFixed(0)
-# Compiler.exe uses Int32, so keep within 1..2147483647.
+# 生成 1..Int32Max 的随机 watchfaceId
 $rng = New-Object System.Random
 $max = [int]::MaxValue
 $value = [math]::Round($rng.NextDouble() * $max, 0, [MidpointRounding]::AwayFromZero)

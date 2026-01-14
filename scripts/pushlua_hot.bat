@@ -1,5 +1,5 @@
 @echo off
-REM Force UTF-8 in console output.
+REM 热部署：仅 Lua + 热更标记
 for /f "tokens=2 delims=: " %%A in ('chcp') do set "_ORIG_CP=%%A"
 chcp 65001 >nul
 setlocal

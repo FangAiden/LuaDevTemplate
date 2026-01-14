@@ -1,16 +1,7 @@
 @echo off
 setlocal
 
-REM ============================================================
-REM Build LuaDevTemplate real-device Lua project (.fprj -> .face)
-REM Usage:
-REM   build_face.bat [face_file_name] [id]
-REM Defaults (from watchface.config.json):
-REM   face_file_name = <projectName>.face
-REM   id             = <watchfaceId>
-REM Output:
-REM   <repo>\bin\<face_file_name>
-REM ============================================================
+REM 构建 .face 并生成 resource.bin
 
 set "SCRIPT_DIR=%~dp0"
 for %%I in ("%SCRIPT_DIR%..") do set "ROOT=%%~fI"
