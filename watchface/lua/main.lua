@@ -43,13 +43,90 @@ local function get_this_dir()
   return src:match("^(.*)/[^/]+$") or "."
 end
 
+local function dir_exists(p)
+  local d = select(1, fs_open_dir(p))
+  if not d then return false end
+  pcall(function() d:close() end)
+  return true
+end
+
+local function is_local_path(p)
+  if p:match("^%a:/") then return true end
+  return p:find("/watchface/lua", 1, true) ~= nil
+end
+
+local function is_device_path(p)
+  return p:sub(1, 1) == "/" and p:find("/data/app/watchface/", 1, true) ~= nil
+end
+
+local function resolve_app_root()
+  local base = get_this_dir()
+  local app_root = base .. "/app"
+  if is_device_path(base) then
+    if dir_exists(app_root) then return app_root end
+    local fprj_root = base .. "/fprj/app"
+    if dir_exists(fprj_root) then return fprj_root end
+    return app_root
+  end
+  local fprj_root = base .. "/fprj/app"
+  if dir_exists(fprj_root) then return fprj_root end
+  if dir_exists(app_root) then return app_root end
+  if is_local_path(base) then return fprj_root end
+  return app_root
+end
+
+local APP_ROOT = resolve_app_root()
+local APP_LUA = APP_ROOT .. "/lua"
+
+local function resolve_asset_path(src)
+  if type(src) ~= "string" or src == "" then return src end
+  if src:sub(1, 1) == "/" or src:match("^%a:") then return src end
+  if not (src:find("/") or src:find("\\") or src:find("%.")) then return src end
+  return APP_ROOT .. "/" .. src
+end
+
+local image_wrapped = false
+local img_set_wrapped = false
+local function patch_image_src()
+  if image_wrapped then return end
+  image_wrapped = true
+  if type(lvgl.Image) ~= "function" then return end
+
+  if not img_set_wrapped and type(lvgl.img_set_src) == "function" then
+    img_set_wrapped = true
+    local old_img_set = lvgl.img_set_src
+    lvgl.img_set_src = function(obj, src, ...)
+      return old_img_set(obj, resolve_asset_path(src), ...)
+    end
+  end
+
+  local orig = lvgl.Image
+  lvgl.Image = function(parent, props)
+    if type(props) == "table" and type(props.src) == "string" then
+      local copy = {}
+      for k, v in pairs(props) do copy[k] = v end
+      copy.src = resolve_asset_path(props.src)
+      props = copy
+    end
+    local obj = orig(parent, props)
+    local ok, old_set = pcall(function() return obj and obj.set_src end)
+    if ok and type(old_set) == "function" then
+      pcall(function()
+        obj.set_src = function(self, src, ...)
+          return old_set(self, resolve_asset_path(src), ...)
+        end
+      end)
+    end
+    return obj
+  end
+end
+
 local function ensure_project_lua_path()
   if not package or type(package.path) ~= "string" then
     return nil
   end
 
-  local dir = get_this_dir()
-  local project_lua = dir .. "/app/lua"
+  local project_lua = APP_LUA
   local p1 = project_lua .. "/?.lua"
   local p2 = project_lua .. "/?/init.lua"
 
@@ -61,7 +138,7 @@ local function ensure_project_lua_path()
 end
 
 local function load_inner_main()
-  local project_lua = ensure_project_lua_path() or (get_this_dir() .. "/app/lua")
+  local project_lua = ensure_project_lua_path() or APP_LUA
   local main_path = project_lua .. "/main.lua"
 
   if loadfile then
@@ -84,6 +161,7 @@ end
 
 local function build_app(api)
   ensure_project_lua_path()
+  patch_image_src()
 
   package.loaded.main = nil
 
