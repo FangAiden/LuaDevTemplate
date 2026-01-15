@@ -30,6 +30,8 @@
 - `watchfaceId` 设备用 ID（Int32 范围）
 - `resourceBin` 控制 preview.bin 生成（lvgl v8/v9、色深、压缩、输入图）
 
+ `Xiaomi Watch S3`以及`Xiaomi Band 8P`仅支持 lvgl v8，生成preview.bin时请在`watchface.config.json`将`lvglVersion`改为`8`
+
 `watchface/lua/config.lua` 由 `scripts/internal/sync_watchface_config.ps1` 生成，不要自行修改。
 
 ## 任务（VSCode）
