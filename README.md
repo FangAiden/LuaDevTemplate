@@ -16,6 +16,8 @@
 
 ## 说明
 
+运行 `pip install -r requirements.txt` 安装依赖（必做）
+
 真正在实机上运行的部分只有`fprj`文件夹下面的内容
 
 请不要修改`watchface/lua`文件夹下面的下面的`main.lua`这是重载器代码
@@ -52,10 +54,7 @@
 
 ## 依赖
 
-- `adb` 在 PATH
-- Python 3（`watchface/tools/LVGLImage*.py`）
-- `pngquant`（LVGL v9 预览转换）
-- `watchface/tools/Compiler.exe`
+- Python 3
 
 ## 虚拟机设备目录（部署后）
 
