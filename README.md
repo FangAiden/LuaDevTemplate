@@ -34,7 +34,7 @@
 
 `watchface/lua/config.lua` 由 `scripts/internal/sync_watchface_config.ps1` 生成，不要自行修改。
 
-## 任务（VSCode）
+## 任务
 
 ![步骤1](./1.png)
 
