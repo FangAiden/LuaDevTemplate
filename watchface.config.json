@@ -1,6 +1,7 @@
 {
     "projectName":  "LuaDevTemplate",
     "watchfaceId":  "849698804",
+    "power_consumption":  "3",
     "resourceBin":  {
                         "lvglVersion":  9,
                         "colorFormat":  "I8",

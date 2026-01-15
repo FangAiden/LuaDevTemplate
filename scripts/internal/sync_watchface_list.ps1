@@ -14,6 +14,7 @@ if (-not $config.watchfaceId) { throw "Missing watchfaceId in watchface.config.j
 
 $watchfaceName = if ($config.watchfaceName) { [string]$config.watchfaceName } else { [string]$config.projectName }
 $watchfaceId = [string]$config.watchfaceId
+$powerConsumption = if ($config.power_consumption) { [string]$config.power_consumption } elseif ($config.powerConsumption) { [string]$config.powerConsumption } else { $null }
 
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
 function Write-Utf8NoBom {
@@ -72,6 +73,9 @@ $template = $templateJson | ConvertFrom-Json
 $template.id = $watchfaceId
 $template.name = $watchfaceName
 $template.in_use = "1"
+if ($powerConsumption) {
+  $template.power_consumption = $powerConsumption
+}
 
 $targetIndex = -1
 for ($i = 0; $i -lt $watchfaceList.Count; $i++) {

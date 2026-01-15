@@ -28,6 +28,7 @@
 
 - `projectName` 模板名称（影响 .face / .fprj）
 - `watchfaceId` 设备用 ID（Int32 范围）
+- `power_consumption` 功耗等级（字符串或数字，默认模板值）
 - `resourceBin` 控制 preview.bin 生成（lvgl v8/v9、色深、压缩、输入图）
 
  `Xiaomi Watch S3`以及`Xiaomi Band 8P`仅支持 lvgl v8，生成preview.bin时请在`watchface.config.json`将`lvglVersion`改为`8`
