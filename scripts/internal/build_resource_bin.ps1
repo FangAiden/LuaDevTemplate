@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
+$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\\.."))
 $configPath = Join-Path $root "watchface.config.json"
 if (-not (Test-Path $configPath)) {
   Write-Error "watchface.config.json not found at $configPath"
@@ -14,7 +14,7 @@ $resource = $config.resourceBin
 $lvglVersion = if ($resource -and $resource.lvglVersion) { [int]$resource.lvglVersion } elseif ($config.lvglVersion) { [int]$config.lvglVersion } else { 9 }
 $colorFormat = if ($resource -and $resource.colorFormat) { [string]$resource.colorFormat } else { "I8" }
 $compress = if ($resource -and $resource.compress) { [string]$resource.compress } else { "NONE" }
-$inputRel = if ($resource -and $resource.input) { [string]$resource.input } else { "watchface\\lua\\app\\images\\preview.png" }
+$inputRel = if ($resource -and $resource.input) { [string]$resource.input } else { "watchface\\lua\\fprj\\images\\preview.png" }
 $outputDir = Join-Path $root "watchface\\data"
 $outputName = if ($resource -and $resource.name) { [string]$resource.name } else { "preview" }
 $colorFormat = $colorFormat.ToUpperInvariant()

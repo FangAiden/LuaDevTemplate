@@ -5,14 +5,19 @@
 ## 目录结构
 
 - `src/` 快应用源码
-- `watchface/lua/main.lua` 设备侧热更新入口
-- `watchface/lua/app/app/lua/main.lua` 表盘 UI 入口
-- `watchface/lua/app/*.fprj` 表盘工程文件
-- `watchface/lua/app/images/preview.png` 预览图
-- `watchface/data/preview.bin` 由 preview.png 生成
-- `watchface/data/resource.bin` 由 .face 拷贝生成
-- `watchface/data/watchface_list.json` 从设备拉取并改写后再推回
-- `bin/` 输出的 .face
+- `watchface/data` 缓存数据（用于在虚拟机安装表盘）
+- `watchface/lua` 重载器代码和表盘项目
+- `watchface/lua/fprj` 表盘项目
+- `watchface/lua/fprj/app` 最终放到实机的目录（代码依赖的资源应该在这里）
+- `watchface/lua/fprj/app/lua` 运行在实机的代码
+- `watchface/tools` 表盘相关工具
+- `bin/` 表盘的编译产物 .face （实机可用）
+- `scripts/` 表盘任务脚本
+
+## 说明
+
+真正在实机上运行的部分只有`fprj`文件夹下面的内容
+请不要修改`watchface/lua`文件夹下面的下面的`main.lua`这是重载器代码
 
 ## 配置
 
@@ -22,22 +27,21 @@
 - `watchfaceId` 设备用 ID（Int32 范围）
 - `resourceBin` 控制 preview.bin 生成（lvgl v8/v9、色深、压缩、输入图）
 
-`watchface/lua/config.lua` 由 `scripts/internal/sync_watchface_config.ps1` 生成。
+`watchface/lua/config.lua` 由 `scripts/internal/sync_watchface_config.ps1` 生成，不要自行修改。
 
 ## 任务（VSCode）
 
-- `给真机构建.face`
-- `全新部署（生成preview+同步watchface列表配置）`
-- `热部署（仅同步Lua代码）`
-- `生成 watchfaceId`
+![步骤1](./1.png)
+![步骤2](./2.png)
+![步骤3](./3.png)
 
 ## 建议流程
 
 1. 修改 `watchface.config.json`。
-2. 需要新 ID 时运行 `生成 watchfaceId`。
-3. 日常调试用 `热部署（仅同步Lua代码）`。
-4. 完整推送资源时用 `全新部署（生成preview+同步watchface列表配置）`。
-5. 需要打包时用 `给真机构建.face`。
+2. 需要新 ID 时运行 `生成表盘ID`。
+3. 日常调试用 `热重载`。
+4. 完整推送资源时用（修改了代码以外的部分，） `全新部署`。
+5. 需要打包时用 `构建表盘二进制`。
 
 ## 依赖
 
@@ -46,7 +50,7 @@
 - `pngquant`（LVGL v9 预览转换）
 - `watchface/tools/Compiler.exe`
 
-## 设备目录（部署后）
+## 虚拟机设备目录（部署后）
 
 ```
 /data/app/watchface/market/<watchfaceId>/

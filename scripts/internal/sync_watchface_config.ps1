@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
+$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\\.."))
 $configPath = Join-Path $root "watchface.config.json"
 if (-not (Test-Path $configPath)) {
   Write-Error "watchface.config.json not found at $configPath"
@@ -63,9 +63,9 @@ return M
 "@
 
 $luaConfigPath = Join-Path $root "watchface\\lua\\config.lua"
-$fprjDir = Join-Path $root "watchface\\lua\\app"
+$fprjDir = Join-Path $root "watchface\\lua\\fprj"
 $fprjPath = Join-Path $fprjDir ("{0}.fprj" -f $projectName)
-$mainLuaPath = Join-Path $root "watchface\\lua\\app\\app\\lua\\main.lua"
+$mainLuaPath = Join-Path $root "watchface\\lua\\fprj\\app\\lua\\main.lua"
 
 Write-Utf8NoBom -Path $luaConfigPath -Content $luaConfig
 
@@ -75,9 +75,9 @@ if (-not (Test-Path $fprjPath)) {
     $targetName = [System.IO.Path]::GetFileName($fprjPath)
     Rename-Item -Path $existing[0].FullName -NewName $targetName
   } elseif ($existing.Count -eq 0) {
-    throw "No .fprj found under watchface/lua/app"
+    throw "No .fprj found under watchface/lua/fprj"
   } else {
-    throw "Multiple .fprj files found under watchface/lua/app; cannot decide which to rename"
+    throw "Multiple .fprj files found under watchface/lua/fprj; cannot decide which to rename"
   }
 }
 

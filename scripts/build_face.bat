@@ -30,7 +30,7 @@ if "%PROJECT_NAME%"=="" (
 )
 
 set "COMPILER_EXE=%ROOT%\watchface\tools\Compiler.exe"
-set "FPRJ=%ROOT%\watchface\lua\app\%PROJECT_NAME%.fprj"
+set "FPRJ=%ROOT%\watchface\lua\fprj\%PROJECT_NAME%.fprj"
 set "OUTDIR=%ROOT%\bin"
 
 for %%I in ("%COMPILER_EXE%") do set "COMPILER_EXE=%%~fI"

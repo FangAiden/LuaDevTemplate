@@ -8,6 +8,7 @@ local root = lvgl.Object(nil, {
   border_width = 0,
 })
 root:clear_flag(lvgl.FLAG.SCROLLABLE)
+root:add_flag(lvgl.FLAG.EVENT_BUBBLE)
 
 local title = lvgl.Label(root, {
   text = "Lua Develop Template",

@@ -25,7 +25,7 @@ echo ==========================================
 echo Delete dir: %DEST_PATH%lua
 echo Push main: %ROOT%\watchface\lua\main.lua ^> %DEST_PATH%lua\main.lua
 echo Push config: %ROOT%\watchface\lua\config.lua ^> %DEST_PATH%lua\config.lua
-echo Push app: %ROOT%\watchface\lua\app\app\lua ^> %DEST_PATH%lua\app\lua
+echo Push app: %ROOT%\watchface\lua\fprj\app\lua ^> %DEST_PATH%lua\app\lua
 echo Push stamp: %STAMP_NAME%
 echo ==========================================
 
@@ -39,7 +39,7 @@ adb shell "mkdir '%DEST_PATH%%STAMP_DIR%'"
 
 adb push "%ROOT%\watchface\lua\main.lua" "%DEST_PATH%lua/main.lua"
 adb push "%ROOT%\watchface\lua\config.lua" "%DEST_PATH%lua/config.lua"
-adb push "%ROOT%\watchface\lua\app\app\lua" "%DEST_PATH%lua/app"
+adb push "%ROOT%\watchface\lua\fprj\app\lua" "%DEST_PATH%lua/app"
 
 adb push "%STAMP_LOCAL%" "%DEST_PATH%%STAMP_DIR%/%STAMP_NAME%"
 

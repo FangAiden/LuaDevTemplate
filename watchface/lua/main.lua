@@ -1,4 +1,4 @@
--- 热更新入口：加载 app/lua/main.lua
+-- 设备侧加载 app/lua/main.lua
 local lvgl = require("lvgl")
 
 local ok_cfg, cfg = pcall(require, "config")

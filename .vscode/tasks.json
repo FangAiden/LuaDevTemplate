@@ -1,8 +1,8 @@
-﻿{
+{
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "给真机构建.face",
+      "label": "构建表盘二进制",
       "type": "shell",
       "command": "${workspaceFolder}\\scripts\\build_face.bat",
       "presentation": {
@@ -13,7 +13,7 @@
       "problemMatcher": []
     },
     {
-      "label": "全新部署（生成preview+同步watchface列表配置）",
+      "label": "全新部署",
       "type": "shell",
       "command": "${workspaceFolder}\\scripts\\pushlua.bat",
       "presentation": {
@@ -24,7 +24,7 @@
       "problemMatcher": []
     },
     {
-      "label": "热部署（仅同步Lua代码）",
+      "label": "热重载代码",
       "type": "shell",
       "command": "${workspaceFolder}\\scripts\\pushlua_hot.bat",
       "presentation": {
@@ -35,7 +35,7 @@
       "problemMatcher": []
     },
     {
-      "label": "生成 watchfaceId",
+      "label": "生成表盘ID",
       "type": "shell",
       "command": "powershell",
       "args": [

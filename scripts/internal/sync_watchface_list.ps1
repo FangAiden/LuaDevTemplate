@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
+$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\\.."))
 $configPath = Join-Path $root "watchface.config.json"
 if (-not (Test-Path $configPath)) {
   Write-Error "watchface.config.json not found at $configPath"
