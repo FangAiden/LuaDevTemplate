@@ -31,10 +31,12 @@ if "%PROJECT_NAME%"=="" (
 
 set "COMPILER_EXE=%ROOT%\watchface\tools\Compiler.exe"
 set "FPRJ=%ROOT%\watchface\lua\fprj\%PROJECT_NAME%.fprj"
+set "FPRJ_OUTPUT=%ROOT%\watchface\lua\fprj\output"
 set "OUTDIR=%ROOT%\bin"
 
 for %%I in ("%COMPILER_EXE%") do set "COMPILER_EXE=%%~fI"
 for %%I in ("%FPRJ%") do set "FPRJ=%%~fI"
+for %%I in ("%FPRJ_OUTPUT%") do set "FPRJ_OUTPUT=%%~fI"
 for %%I in ("%OUTDIR%") do set "OUTDIR=%%~fI"
 
 if not exist "%COMPILER_EXE%" (
@@ -45,6 +47,10 @@ if not exist "%COMPILER_EXE%" (
 if not exist "%FPRJ%" (
   echo [ERROR] Project .fprj not found: "%FPRJ%"
   exit /b 1
+)
+
+if not exist "%FPRJ_OUTPUT%" (
+  mkdir "%FPRJ_OUTPUT%" >nul 2>&1
 )
 
 if not exist "%OUTDIR%" (
