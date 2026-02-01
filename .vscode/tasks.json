@@ -51,6 +51,24 @@
         "panel": "shared"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "去除模拟限制",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\unlimit_emulator.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
     }
   ]
 }
