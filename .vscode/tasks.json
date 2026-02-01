@@ -69,6 +69,24 @@
         "panel": "shared"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "还原模拟限制",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\restore_emulator_limit.ps1"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
     }
   ]
 }
