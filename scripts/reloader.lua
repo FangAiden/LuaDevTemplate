@@ -35,6 +35,8 @@ local fs_open_dir = lvgl.fs.open_dir
 -- 跟踪用户代码创建的独立资源（不在 widget tree 上的）
 local app_timers = {}
 local app_anims = {}
+local app_subscriptions = {}  -- {module, id_or_args} topic/dataman 订阅
+local app_animengines = {}    -- animengine.create 返回的实例
 local tracking = false
 
 lvgl.Timer = function(...)
@@ -51,17 +53,77 @@ if orig_Anim then
   end
 end
 
+-- 代理 topic.subscribe / dataman.subscribe
+local topic = package.loaded.topic
+local dataman = package.loaded.dataman
+local animengine = package.loaded.animengine
+
+local orig_topic_subscribe = topic and topic.subscribe
+local orig_dataman_subscribe = dataman and dataman.subscribe
+local orig_animengine_create = animengine and animengine.create
+
+if orig_topic_subscribe then
+  topic.subscribe = function(...)
+    local ret = orig_topic_subscribe(...)
+    if tracking then app_subscriptions[#app_subscriptions + 1] = { mod = topic, unsub = "unsubscribe", args = {...}, ret = ret } end
+    return ret
+  end
+end
+
+if orig_dataman_subscribe then
+  dataman.subscribe = function(...)
+    local ret = orig_dataman_subscribe(...)
+    if tracking then app_subscriptions[#app_subscriptions + 1] = { mod = dataman, unsub = "unsubscribe", args = {...}, ret = ret } end
+    return ret
+  end
+end
+
+if orig_animengine_create then
+  animengine.create = function(...)
+    local e = orig_animengine_create(...)
+    if tracking and e then app_animengines[#app_animengines + 1] = e end
+    return e
+  end
+end
+
 local function cleanup_resources()
   tracking = false
+
+  local function try(desc, fn)
+    local ok, err = pcall(fn)
+    if not ok then log_error("cleanup " .. desc .. " failed: " .. tostring(err)) end
+  end
+
   for i = #app_timers, 1, -1 do
-    pcall(function() app_timers[i]:pause() end)
-    pcall(function() app_timers[i]:delete() end)
+    try("timer:pause", function() app_timers[i]:pause() end)
+    try("timer:delete", function() app_timers[i]:delete() end)
     app_timers[i] = nil
   end
   for i = #app_anims, 1, -1 do
-    pcall(function() app_anims[i]:stop() end)
-    pcall(function() app_anims[i]:delete() end)
+    try("anim:stop", function() app_anims[i]:stop() end)
+    try("anim:delete", function() app_anims[i]:delete() end)
     app_anims[i] = nil
+  end
+  for i = #app_subscriptions, 1, -1 do
+    local sub = app_subscriptions[i]
+    try("unsubscribe", function()
+      local unsub_fn = sub.mod[sub.unsub]
+      if unsub_fn then
+        if sub.ret ~= nil then
+          unsub_fn(sub.ret)
+        else
+          unsub_fn(unpack(sub.args))
+        end
+      else
+        error(sub.unsub .. " not found on module")
+      end
+    end)
+    app_subscriptions[i] = nil
+  end
+  for i = #app_animengines, 1, -1 do
+    try("animengine:stop", function() app_animengines[i]:stop() end)
+    try("animengine:delete", function() app_animengines[i]:delete() end)
+    app_animengines[i] = nil
   end
 end
 
@@ -164,7 +226,7 @@ local function reload_app()
   tracking = true
 
   local ok, err = xpcall(load_app, tb)
-  _G.require = old_require
+  -- require 包装保持生效，持续追踪运行时懒加载的模块
 
   if not ok then
     log_error("reload failed:\n" .. tostring(err))
