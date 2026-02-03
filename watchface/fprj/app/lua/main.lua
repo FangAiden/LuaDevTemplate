@@ -42,7 +42,7 @@ button:align_to({
 })
 
 local button_label = lvgl.Label(button, {
-  text = "TEST",
+  text = "PRESS",
   text_color = 0xE8EEF5,
   text_font = lvgl.Font("montserrat", 18, "normal"),
   align = lvgl.ALIGN.CENTER,

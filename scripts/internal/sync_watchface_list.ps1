@@ -1,14 +1,4 @@
-$ErrorActionPreference = "Stop"
-
-$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\\.."))
-$configPath = Join-Path $root "watchface.config.json"
-if (-not (Test-Path $configPath)) {
-  Write-Error "watchface.config.json not found at $configPath"
-  exit 1
-}
-
-$configRaw = Get-Content -Raw -Encoding UTF8 $configPath
-$config = $configRaw | ConvertFrom-Json
+. (Join-Path $PSScriptRoot "load_config.ps1")
 
 if (-not $config.watchfaceId) { throw "Missing watchfaceId in watchface.config.json" }
 
@@ -16,18 +6,9 @@ $watchfaceName = if ($config.watchfaceName) { [string]$config.watchfaceName } el
 $watchfaceId = [string]$config.watchfaceId
 $powerConsumption = if ($config.power_consumption) { [string]$config.power_consumption } elseif ($config.powerConsumption) { [string]$config.powerConsumption } else { $null }
 
-$utf8NoBom = New-Object System.Text.UTF8Encoding $false
-function Write-Utf8NoBom {
-  param(
-    [string]$Path,
-    [string]$Content
-  )
-  [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
-}
-
 $deviceSerial = "emulator-5554"
 $devicePath = "/data/app/watchface/watchface_list.json"
-$watchfaceListPath = Join-Path $root "watchface\\data\\watchface_list.json"
+$watchfaceListPath = Join-Path $root "watchface\data\watchface_list.json"
 $watchfaceListDir = Split-Path -Parent $watchfaceListPath
 
 if (-not (Test-Path $watchfaceListDir)) {

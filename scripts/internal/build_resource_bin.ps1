@@ -1,21 +1,11 @@
-$ErrorActionPreference = "Stop"
-
-$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\\.."))
-$configPath = Join-Path $root "watchface.config.json"
-if (-not (Test-Path $configPath)) {
-  Write-Error "watchface.config.json not found at $configPath"
-  exit 1
-}
-
-$configRaw = Get-Content -Raw -Encoding UTF8 $configPath
-$config = $configRaw | ConvertFrom-Json
+. (Join-Path $PSScriptRoot "load_config.ps1")
 
 $resource = $config.resourceBin
 $lvglVersion = if ($resource -and $resource.lvglVersion) { [int]$resource.lvglVersion } elseif ($config.lvglVersion) { [int]$config.lvglVersion } else { 9 }
 $colorFormat = if ($resource -and $resource.colorFormat) { [string]$resource.colorFormat } else { "I8" }
 $compress = if ($resource -and $resource.compress) { [string]$resource.compress } else { "NONE" }
-$inputRel = if ($resource -and $resource.input) { [string]$resource.input } else { "watchface\\lua\\fprj\\images\\preview.png" }
-$outputDir = Join-Path $root "watchface\\data"
+$inputRel = if ($resource -and $resource.input) { [string]$resource.input } else { "watchface\fprj\images\preview.png" }
+$outputDir = Join-Path $root "watchface\data"
 $outputName = if ($resource -and $resource.name) { [string]$resource.name } else { "preview" }
 $colorFormat = $colorFormat.ToUpperInvariant()
 $compress = $compress.ToUpperInvariant()
@@ -47,9 +37,9 @@ if ($lvglVersion -eq 8 -and $align -ne 1) {
 }
 
 $tool = if ($lvglVersion -eq 8) {
-  Join-Path $root "watchface\\tools\\LVGLImage_v8.py"
+  Join-Path $root "watchface\tools\LVGLImage_v8.py"
 } else {
-  Join-Path $root "watchface\\tools\\LVGLImage.py"
+  Join-Path $root "watchface\tools\LVGLImage.py"
 }
 
 if (-not (Test-Path $tool)) {
@@ -61,7 +51,7 @@ if (-not (Test-Path $outputDir)) {
   New-Item -ItemType Directory -Path $outputDir | Out-Null
 }
 
-$args = @(
+$pyArgs = @(
   $tool,
   "--cf", $colorFormat,
   "--output", $outputDir,
@@ -69,17 +59,17 @@ $args = @(
 )
 
 if ($lvglVersion -eq 9) {
-  $args += @("--ofmt", "BIN", "--compress", $compress, "--align", $align)
+  $pyArgs += @("--ofmt", "BIN", "--compress", $compress, "--align", $align)
 }
 
-if ($rgb565Dither) { $args += "--rgb565dither" }
-if ($premultiply) { $args += "--premultiply" }
-if ($background) { $args += @("--background", $background) }
+if ($rgb565Dither) { $pyArgs += "--rgb565dither" }
+if ($premultiply) { $pyArgs += "--premultiply" }
+if ($background) { $pyArgs += @("--background", $background) }
 
-$args += $inputPath
+$pyArgs += $inputPath
 
 Write-Host "Generating preview.bin (LVGL v$lvglVersion, $colorFormat, $compress)..."
-& python @args
+& python @pyArgs
 if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }

@@ -4,7 +4,14 @@
     {
       "label": "构建表盘二进制",
       "type": "shell",
-      "command": "${workspaceFolder}\\scripts\\build_face.bat",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\build_face.ps1"
+      ],
       "presentation": {
         "reveal": "always",
         "focus": false,
@@ -15,7 +22,14 @@
     {
       "label": "全新部署",
       "type": "shell",
-      "command": "${workspaceFolder}\\scripts\\pushlua.bat",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\pushlua.ps1"
+      ],
       "presentation": {
         "reveal": "always",
         "focus": false,
@@ -26,7 +40,15 @@
     {
       "label": "热重载代码",
       "type": "shell",
-      "command": "${workspaceFolder}\\scripts\\pushlua_hot.bat",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\pushlua.ps1",
+        "-Hot"
+      ],
       "presentation": {
         "reveal": "always",
         "focus": false,
@@ -90,4 +112,3 @@
     }
   ]
 }
-

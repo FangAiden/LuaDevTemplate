@@ -1,23 +1,4 @@
-$ErrorActionPreference = "Stop"
-
-$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\\.."))
-$configPath = Join-Path $root "watchface.config.json"
-if (-not (Test-Path $configPath)) {
-  Write-Error "watchface.config.json not found at $configPath"
-  exit 1
-}
-
-$configRaw = Get-Content -Raw -Encoding UTF8 $configPath
-$config = $configRaw | ConvertFrom-Json
-
-$utf8NoBom = New-Object System.Text.UTF8Encoding $false
-function Write-Utf8NoBom {
-  param(
-    [string]$Path,
-    [string]$Content
-  )
-  [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
-}
+. (Join-Path $PSScriptRoot "load_config.ps1")
 
 function Convert-ToSnakeCase {
   param([string]$Value)
@@ -48,9 +29,9 @@ if ($parsedId -lt 1 -or $parsedId -gt [int]::MaxValue) {
   throw "watchfaceId must be within 1..$([int]::MaxValue): $watchfaceId"
 }
 
-$fprjDir = Join-Path $root "watchface\\fprj"
+$fprjDir = Join-Path $root "watchface\fprj"
 $fprjPath = Join-Path $fprjDir ("{0}.fprj" -f $projectName)
-$mainLuaPath = Join-Path $root "watchface\\fprj\\app\\lua\\main.lua"
+$mainLuaPath = Join-Path $root "watchface\fprj\app\lua\main.lua"
 
 if (-not (Test-Path $fprjPath)) {
   $existing = Get-ChildItem -Path $fprjDir -Filter "*.fprj" -File
