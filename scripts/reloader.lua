@@ -28,8 +28,42 @@ local xpcall = xpcall
 local tostring = tostring
 local collectgarbage = collectgarbage
 
-local Timer = lvgl.Timer
+local orig_Timer = lvgl.Timer
+local orig_Anim = lvgl.Anim
 local fs_open_dir = lvgl.fs.open_dir
+
+-- 跟踪用户代码创建的独立资源（不在 widget tree 上的）
+local app_timers = {}
+local app_anims = {}
+local tracking = false
+
+lvgl.Timer = function(...)
+  local t = orig_Timer(...)
+  if tracking and t then app_timers[#app_timers + 1] = t end
+  return t
+end
+
+if orig_Anim then
+  lvgl.Anim = function(...)
+    local a = orig_Anim(...)
+    if tracking and a then app_anims[#app_anims + 1] = a end
+    return a
+  end
+end
+
+local function cleanup_resources()
+  tracking = false
+  for i = #app_timers, 1, -1 do
+    pcall(function() app_timers[i]:pause() end)
+    pcall(function() app_timers[i]:delete() end)
+    app_timers[i] = nil
+  end
+  for i = #app_anims, 1, -1 do
+    pcall(function() app_anims[i]:stop() end)
+    pcall(function() app_anims[i]:delete() end)
+    app_anims[i] = nil
+  end
+end
 
 local function tb(err)
   local tr = (debug and debug.traceback and debug.traceback("", 2)) or ""
@@ -111,7 +145,8 @@ local function reload_app()
   in_reload = true
   if main_timer then pcall(function() main_timer:pause() end) end
 
-  -- 清理旧 UI
+  -- 清理旧 UI 和独立资源
+  cleanup_resources()
   clean_screen()
 
   -- 卸载用户模块
@@ -119,13 +154,14 @@ local function reload_app()
   package.loaded.main = nil
   collectgarbage("collect")
 
-  -- 跟踪依赖并加载用户代码
+  -- 跟踪依赖并加载用户代码（开启资源追踪）
   local recorded = {}
   local old_require = require
   _G.require = function(name)
     recorded[name] = true
     return old_require(name)
   end
+  tracking = true
 
   local ok, err = xpcall(load_app, tb)
   _G.require = old_require
@@ -160,7 +196,7 @@ local mode, current_period = MODE_ALIGN, 200
 local last_epoch, ticks = os_time(), 0
 local near_secs = { [58] = true, [59] = true, [0] = true }
 
-main_timer = Timer({
+main_timer = orig_Timer({
   period = current_period,
   cb = function(self)
     if in_reload then return end
