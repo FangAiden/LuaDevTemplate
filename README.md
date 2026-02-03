@@ -1,26 +1,25 @@
 # LuaDevTemplate
 
-这是一个面向 Vela/QuickApp 的表盘 Lua 模板。QuickApp 源码仍放在 `src/`，表盘 Lua 相关内容在 `watchface/`。
+Vela/QuickApp 表盘 Lua 开发模板。
 
 ## 目录结构
 
-- `src/` 快应用源码
-- `watchface/data` 缓存数据（用于在虚拟机安装表盘）
-- `watchface/lua` 重载器代码和表盘项目
-- `watchface/lua/fprj` 表盘项目
-- `watchface/lua/fprj/app` 最终放到实机的目录（代码依赖的资源应该在这里）
-- `watchface/lua/fprj/app/lua` 运行在实机的代码
-- `watchface/tools` 表盘相关工具
-- `bin/` 表盘的编译产物 .face （实机可用）
-- `scripts/` 表盘任务脚本
+- `watchface/fprj/` 表盘项目（用户只需关注这里）
+  - `app/` 最终释放到实机的内容
+    - `lua/main.lua` 表盘入口代码
+    - `lua/` 其他 Lua 模块
+    - `images/` 图片等资源
+  - `*.fprj` 项目元数据
+- `watchface/data/` 缓存数据（用于在虚拟机安装表盘）
+- `watchface/tools/` 表盘相关工具
+- `bin/` 表盘编译产物 .face（实机可用）
+- `scripts/` 任务脚本及热重载器
 
 ## 说明
 
 运行 `pip install -r requirements.txt` 安装依赖（必做）
 
-真正在实机上运行的部分只有`fprj`文件夹下面的内容
-
-请不要修改`watchface/lua`文件夹下面的下面的`main.lua`这是重载器代码
+用户只需在 `watchface/fprj/app/` 下编写代码和放置资源，目录结构与真机一致。热重载器由推送脚本自动注入，开发时完全透明。
 
 ## 配置
 
@@ -32,8 +31,6 @@
 - `resourceBin` 控制 preview.bin 生成（lvgl v8/v9、色深、压缩、输入图）
 
  `Xiaomi Watch S3`以及`Xiaomi Band 8P`仅支持 lvgl v8，生成preview.bin时请在`watchface.config.json`将`lvglVersion`改为`8`
-
-`watchface/lua/config.lua` 由 `scripts/internal/sync_watchface_config.ps1` 生成，不要自行修改。
 
 ## 任务
 
@@ -51,23 +48,26 @@
 
 1. 修改 `watchface.config.json`。
 2. 需要新 ID 时运行 `生成表盘ID`。
-3. 日常调试用 `热重载`。
-4. 完整推送资源时用（修改了代码以外的部分，） `全新部署`。
-5. 需要打包时用 `构建表盘二进制`。
-
-## 依赖
-
-- Python 3
+3. 在 `watchface/fprj/app/` 下编写代码和放置资源。
+4. 日常调试用 `热重载`。
+5. 完整推送资源时用（修改了代码以外的部分） `全新部署`。
+6. 需要打包时用 `构建表盘二进制`。
 
 ## 虚拟机设备目录（部署后）
 
 ```
 /data/app/watchface/market/<watchfaceId>/
   lua/
-    main.lua
+    main.lua          ← 重载器（自动注入）
+    _app_main.lua     ← 用户代码（从 fprj/app/lua/main.lua 重命名）
+    *.lua             ← 用户其他模块
     config.lua
-    app/
-      lua/
-        main.lua
+  images/             ← 资源文件
   .hotreload/
 ```
+
+与真机释放的目录结构一致（真机上 `main.lua` 即用户代码，无重载器）。
+
+## 依赖
+
+- Python 3

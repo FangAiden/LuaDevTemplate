@@ -23,23 +23,22 @@ type nul > "%STAMP_LOCAL%"
 
 echo ==========================================
 echo Delete dir: %DEST_PATH%lua
-echo Push main: %ROOT%\watchface\lua\main.lua ^> %DEST_PATH%lua\main.lua
-echo Push config: %ROOT%\watchface\lua\config.lua ^> %DEST_PATH%lua\config.lua
-echo Push app: %ROOT%\watchface\lua\fprj\app ^> %DEST_PATH%lua
+echo Push app:   %ROOT%\watchface\fprj\app ^> %DEST_PATH%
+echo Push user main as _app_main.lua
+echo Inject:     %ROOT%\scripts\reloader.lua ^> %DEST_PATH%lua/main.lua
 echo Push stamp: %STAMP_NAME%
 echo ==========================================
 
 adb shell "rm -rf '%DEST_PATH%lua'"
-
-adb shell "mkdir '%DEST_PATH%lua'"
-adb shell "mkdir '%DEST_PATH%lua/app'"
-
 adb shell "rm -rf '%DEST_PATH%%STAMP_DIR%'"
 adb shell "mkdir '%DEST_PATH%%STAMP_DIR%'"
 
-adb push "%ROOT%\watchface\lua\main.lua" "%DEST_PATH%lua/main.lua"
-adb push "%ROOT%\watchface\lua\config.lua" "%DEST_PATH%lua/config.lua"
-adb push "%ROOT%\watchface\lua\fprj\app" "%DEST_PATH%lua"
+REM 镜像真机：将 fprj/app 内容释放到设备根目录
+adb push "%ROOT%\watchface\fprj\app" "%DEST_PATH%"
+
+REM 用户 main.lua 推送为 _app_main.lua，再用重载器覆盖 main.lua
+adb push "%ROOT%\watchface\fprj\app\lua\main.lua" "%DEST_PATH%lua/_app_main.lua"
+adb push "%ROOT%\scripts\reloader.lua" "%DEST_PATH%lua/main.lua"
 
 adb push "%STAMP_LOCAL%" "%DEST_PATH%%STAMP_DIR%/%STAMP_NAME%"
 

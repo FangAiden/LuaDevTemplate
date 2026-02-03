@@ -6,7 +6,7 @@
                         "lvglVersion":  9,
                         "colorFormat":  "I8",
                         "compress":  "NONE",
-                        "input":  "watchface/lua/fprj/images/preview.png",
+                        "input":  "watchface/fprj/images/preview.png",
                         "name":  "preview"
                     }
 }

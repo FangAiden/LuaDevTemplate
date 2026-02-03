@@ -5,7 +5,7 @@ src/lua/app/VelaShellBridge/output
 bin
 docs
 output
-watchface/lua/config.lua
 watchface/data/preview.bin
 watchface/data/resource.bin
 watchface/data/watchface_list.json
+nul

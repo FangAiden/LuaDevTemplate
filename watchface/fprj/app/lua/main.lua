@@ -65,4 +65,3 @@ button:onevent(lvgl.EVENT.CLICKED, function()
   })
 end)
 
-return { root = root }
