@@ -38,12 +38,15 @@ Write-Host "=========================================="
 & $compilerExe -b $fprj $outDir $FaceName $FaceId
 if ($LASTEXITCODE) { throw "Build failed." }
 
-Write-Host "Done: $outDir\$FaceName"
+$facePath = Join-Path $outDir $FaceName
+& (Join-Path $PSScriptRoot "internal\set_face_id.ps1") -FacePath $facePath -WatchfaceId $FaceId
+
+Write-Host "Done: $facePath"
 
 $resourceDir = Join-Path $root "watchface\data"
 $resourceBin = Join-Path $resourceDir "resource.bin"
 
 if (-not (Test-Path $resourceDir)) { New-Item -ItemType Directory -Path $resourceDir | Out-Null }
 
-Copy-Item -Force -Path (Join-Path $outDir $FaceName) -Destination $resourceBin
+Copy-Item -Force -Path $facePath -Destination $resourceBin
 Write-Host "Generated: $resourceBin"
