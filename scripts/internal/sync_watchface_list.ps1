@@ -25,6 +25,23 @@ $listText = Get-Content -Raw -Encoding UTF8 $watchfaceListPath
 $listObj = $listText | ConvertFrom-Json
 $watchfaceList = @($listObj.watchface_list)
 
+function Merge-JsonObject {
+  param(
+    [Parameter(Mandatory = $true)] $Base,
+    [Parameter(Mandatory = $true)] $Overlay
+  )
+
+  foreach ($property in $Overlay.PSObject.Properties) {
+    if ($Base.PSObject.Properties.Name -contains $property.Name) {
+      $Base.($property.Name) = $property.Value
+    } else {
+      $Base | Add-Member -NotePropertyName $property.Name -NotePropertyValue $property.Value
+    }
+  }
+
+  return $Base
+}
+
 $templateJson = @'
 {
   "id": "167210065",
@@ -50,14 +67,6 @@ $templateJson = @'
 }
 '@
 
-$template = $templateJson | ConvertFrom-Json
-$template.id = $watchfaceId
-$template.name = $watchfaceName
-$template.in_use = "1"
-if ($powerConsumption) {
-  $template.power_consumption = $powerConsumption
-}
-
 $targetIndex = -1
 for ($i = 0; $i -lt $watchfaceList.Count; $i++) {
   if ([string]$watchfaceList[$i].id -eq $watchfaceId) {
@@ -65,22 +74,29 @@ for ($i = 0; $i -lt $watchfaceList.Count; $i++) {
     break
   }
 }
-if ($targetIndex -lt 0) {
-  for ($i = 0; $i -lt $watchfaceList.Count; $i++) {
-    if ([string]$watchfaceList[$i].type -eq "1") {
-      $targetIndex = $i
-      break
-    }
-  }
-}
 
 for ($i = 0; $i -lt $watchfaceList.Count; $i++) {
   $watchfaceList[$i].in_use = "0"
 }
 
+$template = $templateJson | ConvertFrom-Json
+if ($targetIndex -ge 0) {
+  $template = Merge-JsonObject -Base $template -Overlay $watchfaceList[$targetIndex]
+}
+
+$template.id = $watchfaceId
+$template.name = $watchfaceName
+$template.type = "1"
+$template.in_use = "1"
+if ($powerConsumption) {
+  $template.power_consumption = $powerConsumption
+}
+
 if ($targetIndex -ge 0) {
   $watchfaceList[$targetIndex] = $template
 } else {
+  # Only append a new custom watchface entry when the ID does not already exist.
+  # Reusing the first type=1 slot would overwrite other template-based watchfaces.
   $watchfaceList += $template
 }
 
